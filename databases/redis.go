@@ -19,9 +19,9 @@ type Redis struct {
 	*redis.Client
 }
 
-//
-//func (h *RedisHandler) redisConnection() (*redis.Client, error) {
-//var client *redis.Client
+func NewRedisHandler() (*RedisHandler, error) {
+	return new(RedisHandler), nil
+}
 
 func (h *RedisHandler) redisConnection() (*Redis, error) {
 	host := os.Getenv("REDIS_HOST")
