@@ -8,7 +8,7 @@ import (
 )
 
 type RedistInterface interface {
-	connection() (*redis.Client, error)
+	RedisConnection() (*redis.Client, error)
 }
 
 type RedisHandler struct {
@@ -23,7 +23,7 @@ func NewRedisHandler() (*RedisHandler, error) {
 	return new(RedisHandler), nil
 }
 
-func (h *RedisHandler) redisConnection() (*Redis, error) {
+func (h *RedisHandler) RedisConnection() (*Redis, error) {
 	host := os.Getenv("REDIS_HOST")
 	port := os.Getenv("REDIS_PORT")
 

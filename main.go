@@ -5,6 +5,7 @@ import (
 	auth "jwt-todo/auth/jwt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -22,6 +23,15 @@ var user = User{
 	Password: "password",
 }
 
+type Todo struct {
+	UserID uint64 `json:"user_id"`
+	Title  string `json:"title"`
+}
+
+type Header struct {
+	Authorization string `header:"Authorization"`
+}
+
 func init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -29,11 +39,30 @@ func init() {
 	}
 }
 
+func ExtractToken(token string) string {
+	t := strings.Split(token, " ")
+	if len(t) == 2 {
+		return t[1]
+	}
+
+	return ""
+}
+
 func main() {
 	r := gin.Default()
 
 	gin.SetMode(gin.DebugMode)
 	r.POST("/api/login", Login)
+	r.GET("/api/test", func(c *gin.Context) {
+		var h Header
+		if err := c.ShouldBindHeader(&h); err != nil {
+			c.JSON(http.StatusUnauthorized, "Invalid Authorization")
+			return
+		}
+
+		token := ExtractToken(h.Authorization)
+		c.JSON(http.StatusOK, token)
+	})
 
 	log.Fatal(r.Run(":1234"))
 }
@@ -55,6 +84,10 @@ func Login(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err.Error())
 		return
+	}
+	err = jwt.SetTokenRedis(user.ID, &token)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, err.Error())
 	}
 	c.JSON(http.StatusOK, token)
 }

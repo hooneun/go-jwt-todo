@@ -1,7 +1,10 @@
 package auth
 
 import (
+	"context"
+	"jwt-todo/databases"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -57,4 +60,29 @@ func (h *JWTHandler) CreateToken(userID uint64) (JWTToken, error) {
 	}
 
 	return t, nil
+}
+
+func (h *JWTHandler) SetTokenRedis(userID uint64, t *JWTToken) error {
+	rdsh, _ := databases.NewRedisHandler()
+
+	rds, err := rdsh.RedisConnection()
+	if err != nil {
+		return err
+	}
+
+	at := time.Unix(t.AtExpires, 0)
+	rt := time.Unix(t.RtExpire, 0)
+	now := time.Now()
+
+	err = rds.Set(context.Background(), t.AccessUuid, strconv.Itoa(int(userID)), at.Sub(now)).Err()
+	if err != nil {
+		return err
+	}
+
+	err = rds.Set(context.Background(), t.RefreshUuid, strconv.Itoa(int(userID)), rt.Sub(now)).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
