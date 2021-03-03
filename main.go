@@ -32,7 +32,7 @@ func init() {
 func main() {
 	r := gin.Default()
 
-	gin.SetMode(gin.TestMode)
+	gin.SetMode(gin.DebugMode)
 	r.POST("/api/login", Login)
 
 	log.Fatal(r.Run(":1234"))
